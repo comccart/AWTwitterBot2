@@ -3,6 +3,7 @@ const express = require("express");
 require('dotenv').config();
 var fs = require('fs')
 const lineReader = require('line-reader');
+const lineByLine = require('n-readlines');
 
 const app = express();
 
@@ -19,64 +20,57 @@ var client = new Twitter({
 //   bearer_token: process.env.BEARER_TOKEN
 // });
 
-var currentMessage = "";
 var messageArray = [];
 var lineCount = 0;
 
-app.get("/", function(req, res){
-  lineReader.eachLine('data.txt', (line, last) => {
-      //console.log(line);
-      messageArray.push(line);
-      lineCount++;
+const liner = new lineByLine('./data.txt');
+
+let line;
+let lineNumber = 0;
+
+function sendTweet() {
+  while (line = liner.next()) {
+    console.log('Line ' + lineNumber + ': ' + line.toString('ascii'));
+    messageArray.push(line);
+    lineNumber++;
+  }
+
+  console.log('end of line reached');
+
+  console.log("Line Count is " + lineNumber);
+  var num = Math.floor((Math.random() * lineNumber));
+  console.log("Random Number is " + num);
+  var currentMessage = messageArray[num];
+  console.log("Selected message is: " + currentMessage);
+
+  client.post('statuses/update', {
+    status: '' + currentMessage
+  }, function(error, tweet, response) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log(tweet);
+    }
   });
-  console.log("Selected one is: " + messageArray[Math.floor((Math.random()*lineCount))]);
+
+}
+
+//// TODO: push to git, check on Vercel
+
+// Try to retweet something as soon as we run the program...
+sendTweet();
+// ...and then every 36 hours after that. Time here is in milliseconds, so
+// 1000 ms = 1 second, 1 sec * 60 = 1 min, 1 min * 60 = 1 hour --> 1000 * 60 * 60 * 36
+setInterval(sendTweet, 1000 * 30 * 60 * 36);
+
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3000;
+}
+app.listen(port, function() {
+  console.log("Server started on port " + port);
 });
 
-// fs.readFile('data.txt', function(err, data)
-// {
-//     if (err) throw err;
-//
-//     currentMessage = data.toString().split("\n");
-//
-//     console.log(currentMessage)
+// app.listen(3000, function() {
+//   console.log("Server started on port 3000.");
 // });
-
-// var text = "";
-// async function FileReader(file) {
-//   TEXT = await file.text();
-// }
-// function RandomText(text) {
-//   const textArray = text.split("n");
-//   const randomKey = Math.floor(Math.random() * textArray.length);
-//   console.log(textArray[randomKey]);
-// }
-
-
-// client.post('statuses/update', {status: 'I Love Twitter'},  function(error, tweet, response) {
-//   if(error) throw error;
-//   console.log(tweet);  // Tweet body.
-//   console.log(response);  // Raw response object.
-// });
-
-// app.get("/", function(req, res){
-//   var params = {screen_name: 'WisdomWilkinson'};
-//   client.get('statuses/user_timeline', params, function(error, tweets, response) {
-//     if (!error) {
-//       console.log(tweets);
-//     } else {
-//       console.log(error);
-//     }
-//   });
-// });
-
-// let port = process.env.PORT;
-// if (port == null || port == "") {
-//   port = 3000;
-// }
-// app.listen(port, function() {
-//   console.log("Server started on port 3000");
-// });
-
-app.listen(3000, function() {
-  console.log("Server started on port 3000.");
-});
