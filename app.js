@@ -21,7 +21,6 @@ var client = new Twitter({
 // });
 
 var messageArray = [];
-var lineCount = 0;
 
 const liner = new lineByLine('./data.txt');
 
@@ -30,18 +29,18 @@ let lineNumber = 0;
 
 function sendTweet() {
   while (line = liner.next()) {
-    console.log('Line ' + lineNumber + ': ' + line.toString('ascii'));
+    //console.log('Line ' + lineNumber + ': ' + line.toString('ascii'));
     messageArray.push(line);
     lineNumber++;
   }
 
-  console.log('end of line reached');
+  //console.log('end of line reached');
 
-  console.log("Line Count is " + lineNumber);
+  //console.log("Line Count is " + lineNumber);
   var num = Math.floor((Math.random() * lineNumber));
-  console.log("Random Number is " + num);
+  //console.log("Random Number is " + num);
   var currentMessage = messageArray[num];
-  console.log("Selected message is: " + currentMessage);
+  //console.log("Selected message is: " + currentMessage);
 
   client.post('statuses/update', {
     status: '' + currentMessage
